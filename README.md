@@ -1,1 +1,5 @@
-# e-learning-dj-linux
+# E-Learning platform
+
+### Content
+
+    - Content Management System (CMS)
