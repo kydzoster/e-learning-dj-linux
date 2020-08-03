@@ -17,7 +17,7 @@ class Course(models.Model):
     # who created this course
     owner = models.ForeignKey(User, related_name='courses_created', on_delete=models.CASCADE)
     # The subject this course belongs to
-    subject = models.ForeignKey(Subject, elated_name='courses', on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, related_name='courses', on_delete=models.CASCADE)
     # The title of the course
     title = models.CharField(max_length=200)
     # for the URL
