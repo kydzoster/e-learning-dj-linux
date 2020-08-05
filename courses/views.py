@@ -4,7 +4,9 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import redirect, get_object_or_404
-from .models import Course
+from django.apps import apps
+from django.forms.models import modelform_factory
+from .models import Module, Content, Course
 from .forms import ModuleFormSet
 
 
@@ -83,3 +85,62 @@ class CourseModuleUpdateView(TemplateResponseMixin, View):
             return redirect('manage_course_list')
         # if not valid, renders the template to display any errors
         return self.render_to_response({'course': self.course, 'formset': formset})
+
+# this will allow to create and updatedifferent mmodels contents
+class ContentCreateUpdateView(TemplateResponseMixin, View):
+    module = None
+    model = None
+    obj = None
+    template_name = 'courses/manage/content/form.html'
+    # check that given model name is one of the four content models(text, video, image, file)
+    def get_model(self, model_name):
+        if model_name in ['text', 'video', 'image', 'file']:
+            # obtains the actual class for the given model name
+            return apps.get_model(app_label='courses', model_name=model_name)
+        # if not valid return None
+        return None
+
+    def get_form(self, model, *args, **kwargs):
+        # dynamic form which excludes specific parameters
+        Form = modelform_factory(model, exclude=['owner', 'order', 'created', 'updated'])
+        return Form(*args, **kwargs)
+    # receives URL parameters and stores the coressponding module, model and content object as class attributes
+    def dispatch(self, request, module_id, model_name, id=None):
+        # module_id, ID for the module that content is/will be associated with
+        # id, the ID of the object that is being updated
+        self.module = get_object_or_404(Module, id=module_id, course__owner=request.user)
+        # model_name, name of the content to create/update
+        self.model = self.get_model(model_name)
+        if id:
+            self.obj = get_object_or_404(self.model, id=id, owner=request.user)
+        return super().dispatch(request, module_id, model_name, id)
+    # builds model form for text, video, image, file, that is being updated
+    def get(self, request, module_id, model_name, id=None):
+        form = self.get_form(self.model, instance=self.obj)
+        return self.render_to_response({'form': form, 'object': self.obj})
+    # Builds a model form, passing any submited data and files to it.
+    def post(self, request, module_id, model_name, id=None):
+        form = self.get_form(self.model, instance=self.obj, data=request.POST, files=request.FILES)
+        # validates it
+        if form.is_valid():
+            # when valid create new object and 
+            obj = form.save(commit=False)
+            # assign user as its owner
+            obj.owner = request.user
+            obj.save()
+            # check id, if no id provided then
+            if not id:
+                # create a new content
+                Content.objects.create(module=self.module, item=obj)
+            return redirect('module_content_list', self.module.id)
+
+        return self.render_to_response({'form': form, 'object': self.obj})
+
+# retrieves content object with given ID. deletes the related object.
+class ContentDeleteView(View):
+    def post(self, request, id):
+        content = get_object_or_404(Content, id=id, module__course__owner=request.user)
+        module = content.module
+        content.item.delete()
+        content.delete()
+        return redirect('module_content_list', module.id)
