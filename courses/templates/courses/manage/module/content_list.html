@@ -34,9 +34,9 @@
             <div id="module-contents">
                 {% for content in module.contents.all %}
                     <div data-id="{{ content.id }}">
+                        <!-- this will display item model name in the template and 
+                            also uses the model name to build the link to edit the object -->
                         {% with item=content.item %}
-                            <!-- this will display item model name in the template and 
-                                also uses the model name to build the link to edit the object -->
                             <p>{{ item }} ({{ item|model_name }})</p>
                             <a href="{% url 'module_content_update' module.id item|model_name item.id %}">
                                 Edit
@@ -63,21 +63,21 @@
 {% endblock %}
 <!--JS drag-and-drop functionality in a sidebar-->
 {% block domready %}
-    <!--define a sortable element for the modules HTML element-->
+    // define a sortable element for the modules HTML element
     $('#modules').sortable({
-        <!--Stop event is triggered every time the user finishes sorting an element-->
+        // Stop event is triggered every time the user finishes sorting an element
         stop: function(event, ui) {
-            <!--empty module_order dictionary, uses module ID and 
-                the values will be assigned order for each module-->
+            //empty module_order dictionary, uses module ID and 
+            // the values will be assigned order for each module
             modules_order = {};
-            <!--Iterates over #module children elements-->
+            // Iterates over #module children elements
             $('#modules').children().each(function() {
-                <!--update the order field-->
+                // update the order field
                 $(this).find('.order').text($(this).index() + 1);
-                <!--associate the module's id with its order-->
+                // associate the module's id with its order
                 modules_order[$(this).data('id')] = $(this).index();
             });
-            <!--Launch AJAX post request to the content_order URL including modules_order-->
+            // Launch AJAX post request to the content_order URL including modules_order
             $.ajax({
                 type: 'POST',
                 url: '{% url "module_order" %}',
@@ -92,7 +92,7 @@
         stop: function(event, ui) {
             contents_order = {};
             $('#module-contents').children().each(function() {
-                <!--associate the module's id with its order-->
+                // associate the module's id with its order
                 contents_order[$(this).data('id')] = $(this).index();
             });
 
