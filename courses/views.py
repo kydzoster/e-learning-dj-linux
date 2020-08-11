@@ -186,12 +186,23 @@ class CourseListView(TemplateResponseMixin, View):
             cache.set('all_subjects', subjects)
         # retrieve all available courses for each subject, 
         # including the total number of modules contained in each course
-        courses = Course.objects.annotate(total_modules=Count('modules'))
+        all_courses = Course.objects.annotate(total_modules=Count('modules'))
+        
         if subject:
             # retrieve corresponding subject object and limit 
             # the query to the courses that belong to the given subject
             subject = get_object_or_404(Subject, slug=subject)
-            courses = courses.filter(subject=subject)
+            # if there is subject, build the key dynamically
+            key = f'subject_{subject.id}_courses'
+            courses = cache.get(key)
+            if not courses:
+                courses = all_courses.filter(subject=subject)
+                cache.set(key, courses)
+        else:
+            courses = cache.get('all_courses')
+            if not courses:
+                courses = all_courses
+                cache.set('all_courses', courses)
         # render the objects to a template and return an HTTP response
         return self.render_to_response({
             'subjects': subjects,
