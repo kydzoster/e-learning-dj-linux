@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # custom
     'courses.apps.CoursesConfig',
     'students.apps.StudentsConfig',
+    'embed_video',
 
     # origin
     'django.contrib.admin',
@@ -128,3 +129,6 @@ STATIC_URL = '/static/'
 # after a successful login if no next parameter is presented in the request.
 from django.urls import reverse_lazy
 LOGIN_REDIRECT_URL = reverse_lazy('student_course_list')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
