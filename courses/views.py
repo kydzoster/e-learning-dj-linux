@@ -8,6 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.forms.models import modelform_factory
 from django.apps import apps
 from django.db.models import Count
+from django.core.cache import cache
 from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
 from .models import Course, Module, Content, Subject
 from .forms import ModuleFormSet
@@ -176,9 +177,15 @@ class CourseListView(TemplateResponseMixin, View):
     template_name = 'courses/course/list.html'
 
     def get(self, request, subject=None):
+        # try to get all students
+        subjects = cache.get('all_subjects')
+        # if no students found ..
+        if not subjects:
+            # then retrieve all available courses for each subject and number of courses
+            subjects = Subject.objects.annotate(total_courses=Count('courses'))
+            cache.set('all_subjects', subjects)
         # retrieve all available courses for each subject, 
         # including the total number of modules contained in each course
-        subjects = Subject.objects.annotate(total_courses=Count('courses'))
         courses = Course.objects.annotate(total_modules=Count('modules'))
         if subject:
             # retrieve corresponding subject object and limit 
