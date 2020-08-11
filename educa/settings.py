@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     # custom
     'courses.apps.CoursesConfig',
+    'students.apps.StudentsConfig',
 
     # origin
     'django.contrib.admin',
