@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
+from rest_framework.decorators import action
 
 
 class SubjectListView(generics.ListAPIView):
@@ -21,7 +22,7 @@ class SubjectDetailView(generics.RetrieveAPIView):
     queryset = Subject.objects.all()
     # serializes objects
     serializer_class = SubjectSerializer
-
+"""
 # this will handle student enrolement on course.
 class CourseEnrollView(APIView):
     # users will be identified by the credentials set in the Authorization header of the HTTP request
@@ -36,9 +37,19 @@ class CourseEnrollView(APIView):
         # add current user to the students many-to-many relationship of the course
         course.students.add(request.user)
         # return successful response
-        return Response({'enrolled': True})
+        return Response({'enrolled': True})"""
 
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    # action decorator with parameter detail=True to specify 
+    # that this is an action to be performed on a single object.
+    @action(detail=True,
+            methods=['post'],
+            authentication_classes=[BasicAuthentication],
+            permission_classes=[IsAuthenticated])
+    def enroll(self, request, *args, **kwargs):
+        course = self.get_object()
+        course.students.add(request.user)
+        return Response({'enrolled': True})
