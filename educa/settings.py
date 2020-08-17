@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'students.apps.StudentsConfig',
     'embed_video',
     'memcache_status',
+    'rest_framework',
 
     # origin
     'django.contrib.admin',
@@ -146,3 +147,11 @@ CACHES = {
 CACHE_MIDDLEWARE_ALIAS = 'default'
 CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes
 CACHE_MIDDLEWARE_KEY_PREFIX = 'educa'
+
+REST_FRAMEWORK = {
+    # This provides basic CRUD objects
+    'DEFAULT_PERMISSION_CLASSES': [
+        # This class provides CRUD access except anonymous users who has only read-only access
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
